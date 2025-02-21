@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "701367427371",
+    "project_id": "task2go-7b7b2",
+    "storage_bucket": "task2go-7b7b2.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:701367427371:android:30ce54d41b96a9e226656e",
+        "android_client_info": {
+          "package_name": "com.example.task2go"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCN3a7yDaRdueOt5kybYEq93LDC-vvlbec"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

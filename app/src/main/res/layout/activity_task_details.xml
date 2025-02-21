@@ -1,0 +1,42 @@
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:fillViewport="true">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:padding="20dp">
+
+        <TextView
+            android:id="@+id/detailTitle"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textSize="24sp"
+            android:textStyle="bold"/>
+
+        <TextView
+            android:id="@+id/detailDescription"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textSize="18sp"
+            android:paddingTop="10dp"/>
+
+        <Button
+            android:id="@+id/btnApplyTask"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Apply for this Task"
+            android:layout_marginTop="20dp"/>
+
+        <Button
+            android:id="@+id/btnViewApplications"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="View Application"
+            android:layout_marginTop="10dp"/>
+
+    </LinearLayout>
+
+</ScrollView>

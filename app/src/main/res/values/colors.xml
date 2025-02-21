@@ -1,0 +1,6 @@
+<resources>
+    <color name="white">#FFFFFF</color>
+    <color name="app_bar_color">#6200EE</color>  <!-- Your desired App Bar color -->
+    <color name="app_bar_color_dark">#3700B3</color>  <!-- Darker shade for status bar -->
+    <color name="colorAccent">#FF4081</color>  <!-- Accent color -->
+</resources>
