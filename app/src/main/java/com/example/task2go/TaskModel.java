@@ -1,19 +1,20 @@
 package com.example.task2go;
 
 public class TaskModel {
+    private String title, description, userId, taskId;
 
-        private String title, description, taskId;
+    // Required empty constructor for Firestore
+    public TaskModel() {}
 
-        // Required empty constructor for Firestore
-        public TaskModel() {}
+    public TaskModel(String taskId, String title, String description, String userId) {
+        this.taskId = taskId;
+        this.title = title;
+        this.description = description;
+        this.userId = userId;
+    }
 
-        public TaskModel(String title, String description, String userId) {
-            this.title = title;
-            this.description = description;
-            this.taskId = userId;
-        }
-
-        public String getTitle() { return title; }
-        public String getDescription() { return description; }
-        public String getTaskId() { return taskId; }
+    public String getTitle() { return title; }
+    public String getDescription() { return description; }
+    public String getUserId() { return userId; }
+    public static String getTaskId() { return taskId; }
 }

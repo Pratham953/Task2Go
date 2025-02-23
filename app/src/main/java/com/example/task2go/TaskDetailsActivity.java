@@ -2,108 +2,181 @@ package com.example.task2go;
 
 import android.content.Intent;
 import android.os.Bundle;
+import android.util.Log;
+import android.view.View;
 import android.widget.Button;
+import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
-
-import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
-
 import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.firestore.DocumentReference;
+import com.google.firebase.firestore.FieldValue;
 import com.google.firebase.firestore.FirebaseFirestore;
+import java.util.HashMap;
+import java.util.Map;
 
 public class TaskDetailsActivity extends AppCompatActivity {
-    private String taskId, title, description;
+    private TextView title, description;
+    private Button btnApplyTask;
     private FirebaseFirestore db;
-    private FirebaseAuth auth;
-    private TextView titleText, descText;
-    private Button btnApplyTask, btnViewApplications;
+    private FirebaseAuth mAuth;
+    private String taskId;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_task_details);
 
-        // Initialize Firebase
-        db = FirebaseFirestore.getInstance();
-        auth = FirebaseAuth.getInstance();
-
-        // Get UI Elements
-        titleText = findViewById(R.id.detailTitle);
-        descText = findViewById(R.id.detailDescription);
+        title = findViewById(R.id.detailTitle);
+        description = findViewById(R.id.detailDescription);
         btnApplyTask = findViewById(R.id.btnApplyTask);
-        btnViewApplications = findViewById(R.id.btnViewApplications);
 
-        // Retrieve Intent Data
-        taskId = getIntent().getStringExtra("taskId");  // Correct usage
-        title = getIntent().getStringExtra("title");
-        description = getIntent().getStringExtra("description");
+        db = FirebaseFirestore.getInstance();
+        mAuth = FirebaseAuth.getInstance();
 
-        // Check if Task ID is missing
+        // Get Task Data from Intent
+        taskId = getIntent().getStringExtra("taskId");
+        String taskTitle = getIntent().getStringExtra("title");
+        String taskDescription = getIntent().getStringExtra("description");
+
         if (taskId == null || taskId.isEmpty()) {
-            Toast.makeText(this, "TaskId is missing", Toast.LENGTH_LONG).show();
-            finish(); // Close activity to prevent crashes
+            Toast.makeText(this, "Error: Task not found", Toast.LENGTH_SHORT).show();
+            finish();  // Close activity if no task ID is found
             return;
         }
 
-        // Debugging: Log the received Task ID
-        android.util.Log.d("TaskDetailsActivity", "Received Task ID: " + taskId);
+        title.setText(taskTitle);
+        description.setText(taskDescription);
 
-        // Set task data to UI
-        titleText.setText(title);
-        descText.setText(description);
+        // Apply for Task when Button is Clicked
+        btnApplyTask.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                applyForTask();
+            }
+        });
 
-        // Check if the user is the owner of the task
-        checkIfUserIsOwner();
+        Button btnViewApplications = findViewById(R.id.btnViewApplications);
+        btnViewApplications.setOnClickListener(v -> {
+            Intent intent = new Intent(TaskDetailsActivity.this, TaskApplicationsActivity.class);
+            intent.putExtra("taskId", TaskModel.getTaskId());
+            startActivity(intent);
+        });
 
-        // Apply for task button click
-        btnApplyTask.setOnClickListener(v -> applyForTask());
+        checkIfUserApplied();
 
-        // View applications button click
-        btnViewApplications.setOnClickListener(v -> viewApplications());
-    }
-
-    private void checkIfUserIsOwner() {
-        String userId = auth.getCurrentUser() != null ? auth.getCurrentUser().getUid() : null;
-        if (userId == null) {
-            Toast.makeText(this, "User not logged in!", Toast.LENGTH_SHORT).show();
-            return;
-        }
-
-        db.collection("tasks").document(taskId).get()
-                .addOnSuccessListener(documentSnapshot -> {
-                    if (documentSnapshot.exists()) {
-                        String ownerId = documentSnapshot.getString("ownerId");
-                        if (ownerId != null && ownerId.equals(userId)) {
-                            btnApplyTask.setEnabled(false);
-                            btnViewApplications.setEnabled(true);
-                            Toast.makeText(this, "You are the owner of this task", Toast.LENGTH_SHORT).show();
-                        } else {
-                            btnApplyTask.setEnabled(true);
-                            btnViewApplications.setEnabled(false);
-                        }
-                    }
-                })
-                .addOnFailureListener(e -> Toast.makeText(this, "Error fetching task data", Toast.LENGTH_SHORT).show());
+        Log.d("TaskDetails", "Task ID received: " + taskId);
     }
 
     private void applyForTask() {
-        String userId = auth.getCurrentUser() != null ? auth.getCurrentUser().getUid() : null;
-        if (userId == null) {
-            Toast.makeText(this, "You need to log in to apply!", Toast.LENGTH_SHORT).show();
+        FirebaseAuth auth = FirebaseAuth.getInstance();
+        FirebaseUser currentUser = auth.getCurrentUser();
+
+        if (currentUser == null) {
+            Toast.makeText(this, "Please log in to apply", Toast.LENGTH_SHORT).show();
             return;
         }
 
-        db.collection("tasks").document(taskId)
-                .collection("applications").document(userId)
-                .set(new ApplicationModel(userId))
-                .addOnSuccessListener(aVoid -> Toast.makeText(this, "Applied Successfully!", Toast.LENGTH_SHORT).show())
-                .addOnFailureListener(e -> Toast.makeText(this, "Failed to apply", Toast.LENGTH_SHORT).show());
+        String userId = currentUser.getUid();
+        String taskId = getIntent().getStringExtra("TASK_ID");
+
+        if (taskId == null) {
+            Toast.makeText(this, "Error: Task not found", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        FirebaseFirestore db = FirebaseFirestore.getInstance();
+        DocumentReference applicationRef = db.collection("TaskApplications").document(userId + "_" + taskId);
+
+        applicationRef.get()
+                .addOnSuccessListener(documentSnapshot -> {
+                    if (documentSnapshot.exists()) {
+                        Toast.makeText(this, "You have already applied for this task!", Toast.LENGTH_SHORT).show();
+                    } else {
+                        saveApplicationToFirebase(userId, taskId);
+                    }
+                })
+                .addOnFailureListener(e -> Log.e("FirebaseError", "Error: " + e.getMessage()));
     }
 
-    private void viewApplications() {
-        Intent intent = new Intent(this, ApplicationListActivity.class);
-        intent.putExtra("taskId", taskId);
-        startActivity(intent);
+
+    private void saveApplicationToFirebase(String userId, String taskId) {
+        FirebaseFirestore db = FirebaseFirestore.getInstance();
+
+        // Reference to "TaskApplications" collection
+        DocumentReference applicationRef = db.collection("TaskApplications").document(userId + "_" + taskId);
+
+        // Create application object
+        Map<String, Object> applicationData = new HashMap<>();
+        applicationData.put("userId", userId);
+        applicationData.put("taskId", taskId);
+        applicationData.put("timestamp", System.currentTimeMillis());
+
+        applicationRef.set(applicationData)
+                .addOnSuccessListener(aVoid -> {
+                    Toast.makeText(this, "You have successfully applied!", Toast.LENGTH_SHORT).show();
+                    updateUIAfterApplying();  // Update button state
+                })
+                .addOnFailureListener(e -> {
+                    Toast.makeText(this, "Failed to apply. Try again!", Toast.LENGTH_SHORT).show();
+                    Log.e("FirebaseError", "Error: " + e.getMessage());
+                });
     }
+
+    private void updateUIAfterApplying() {
+        Button applyButton = findViewById(R.id.btnApplyTask);
+        applyButton.setText("Applied");
+        applyButton.setEnabled(false); // Disable button
+    }
+
+
+    private void checkIfUserApplied() {
+        FirebaseAuth auth = FirebaseAuth.getInstance();
+        FirebaseUser currentUser = auth.getCurrentUser();
+
+        if (currentUser == null) return;
+
+        String userId = currentUser.getUid();
+        String taskId = getIntent().getStringExtra("TASK_ID");
+
+        FirebaseFirestore db = FirebaseFirestore.getInstance();
+        DocumentReference applicationRef = db.collection("TaskApplications").document(userId + "_" + taskId);
+
+        applicationRef.get()
+                .addOnSuccessListener(documentSnapshot -> {
+                    if (documentSnapshot.exists()) {
+                        updateUIAfterApplying();  // User already applied, update UI
+                    }
+                });
+    }
+
+
+
+
+
+//    private void applyForTask() {
+//        String userId = FirebaseAuth.getInstance().getCurrentUser().getUid();
+//        String message = "I am interested in this task!"; // Change this to user input later
+//
+//        Map<String, Object> application = new HashMap<>();
+//        application.put("userId", userId);
+//        application.put("message", message);
+//        application.put("timestamp", System.currentTimeMillis());
+//
+//        FirebaseFirestore db = FirebaseFirestore.getInstance();
+//        db.collection("tasks").document(taskId)
+//                .collection("applications")
+//                .add(application)
+//                .addOnSuccessListener(docRef -> {
+//                    Toast.makeText(this, "Application Sent!", Toast.LENGTH_SHORT).show();
+//                    Log.d("Firestore", "Application added successfully!");
+//                })
+//                .addOnFailureListener(e -> {
+//                    Toast.makeText(this, "Error: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+//                    Log.e("Firestore", "Error adding application", e);
+//                });
+//    }
+
 }

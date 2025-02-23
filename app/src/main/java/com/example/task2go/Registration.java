@@ -33,19 +33,6 @@ public class Registration extends AppCompatActivity {
     TextView textView;
 
     @Override
-    public void onStart() {
-        super.onStart();
-        // Check if user is signed in (non-null) and update UI accordingly.
-        FirebaseUser currentUser = mAuth.getCurrentUser();
-        if(currentUser != null){
-            Intent intent=new Intent(getApplicationContext(), MainActivity.class);
-            startActivity(intent);
-            finish();
-        }
-    }
-
-
-    @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         EdgeToEdge.enable(this);
@@ -101,7 +88,7 @@ public class Registration extends AppCompatActivity {
                                     //Log.d(TAG, "createUserWithEmail:success")
                                     Toast.makeText(Registration.this, "Account Created", Toast.LENGTH_SHORT).show();
                                     //updateUI(user);
-                                    Intent intent=new Intent(getApplicationContext(), MainActivity.class);
+                                    Intent intent=new Intent(getApplicationContext(), DashboardActivity.class);
                                     startActivity(intent);
                                     finish();
                                 } else {

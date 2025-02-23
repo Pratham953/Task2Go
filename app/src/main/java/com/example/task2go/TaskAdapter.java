@@ -6,7 +6,6 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
@@ -37,17 +36,10 @@ public class TaskAdapter extends RecyclerView.Adapter<TaskAdapter.TaskViewHolder
 
         // Open Task Details on Click
         holder.itemView.setOnClickListener(v -> {
-            if (task.getTaskId() == null || task.getTaskId().isEmpty()) {
-                Toast.makeText(context, "TaskId is missing", Toast.LENGTH_SHORT).show();
-                return;  // Prevent crash
-            }
-
             Intent intent = new Intent(context, TaskDetailsActivity.class);
-            intent.putExtra("taskId", task.getTaskId());  // ✅ Send Task ID
             intent.putExtra("title", task.getTitle());
             intent.putExtra("description", task.getDescription());
             context.startActivity(intent);
-
         });
     }
 
