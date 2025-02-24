@@ -2,6 +2,7 @@ package com.example.task2go;
 
 import android.content.Context;
 import android.content.Intent;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -13,8 +14,8 @@ import androidx.recyclerview.widget.RecyclerView;
 import java.util.List;
 
 public class TaskAdapter extends RecyclerView.Adapter<TaskAdapter.TaskViewHolder> {
-    private List<TaskModel> taskList;
-    private Context context;
+    private final List<TaskModel> taskList;
+    private final Context context;
 
     public TaskAdapter(List<TaskModel> taskList, Context context) {
         this.taskList = taskList;
@@ -33,14 +34,19 @@ public class TaskAdapter extends RecyclerView.Adapter<TaskAdapter.TaskViewHolder
         TaskModel task = taskList.get(position);
         holder.taskTitle.setText(task.getTitle());
         holder.taskDescription.setText(task.getDescription());
+        String taskId = TaskModel.getTaskId();
 
         // Open Task Details on Click
         holder.itemView.setOnClickListener(v -> {
             Intent intent = new Intent(context, TaskDetailsActivity.class);
+            intent.putExtra("taskId", taskList.get(position).getTaskId());
             intent.putExtra("title", task.getTitle());
             intent.putExtra("description", task.getDescription());
             context.startActivity(intent);
         });
+
+        Log.d("TaskAdapter", "Task ID: " + TaskModel.getTaskId());
+
     }
 
     @Override

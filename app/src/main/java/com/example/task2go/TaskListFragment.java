@@ -6,6 +6,7 @@ import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -42,10 +43,17 @@ public class TaskListFragment extends Fragment {
             if (task.isSuccessful()) {
                 for (QueryDocumentSnapshot doc : task.getResult()) {
                     TaskModel taskItem = doc.toObject(TaskModel.class);
+
+                    // ✅ Assign Firestore document ID as taskId
+                    taskItem.setTaskId(doc.getId());
+
                     taskList.add(taskItem);
                 }
                 taskAdapter.notifyDataSetChanged();
+            } else {
+                Log.e("Firestore", "Error loading tasks", task.getException());
             }
         });
     }
+
 }

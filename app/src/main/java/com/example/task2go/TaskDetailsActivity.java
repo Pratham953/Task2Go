@@ -36,39 +36,36 @@ public class TaskDetailsActivity extends AppCompatActivity {
         db = FirebaseFirestore.getInstance();
         mAuth = FirebaseAuth.getInstance();
 
-        // Get Task Data from Intent
+        // ✅ Correctly retrieve taskId
         taskId = getIntent().getStringExtra("taskId");
-        String taskTitle = getIntent().getStringExtra("title");
-        String taskDescription = getIntent().getStringExtra("description");
 
         if (taskId == null || taskId.isEmpty()) {
-            Toast.makeText(this, "Error: Task not found", Toast.LENGTH_SHORT).show();
-            finish();  // Close activity if no task ID is found
+            Log.e("TaskDetailsActivity", "Task ID is missing");
+            Toast.makeText(this, "Task not found!", Toast.LENGTH_SHORT).show();
+            finish();
             return;
         }
 
-        title.setText(taskTitle);
-        description.setText(taskDescription);
+        Log.d("TaskDetailsActivity", "Received Task ID: " + taskId);
 
-        // Apply for Task when Button is Clicked
-        btnApplyTask.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                applyForTask();
-            }
-        });
+        // ✅ Correctly set task details
+        title.setText(getIntent().getStringExtra("title"));
+        description.setText(getIntent().getStringExtra("description"));
+
+        fetchTaskDetails(taskId);  // Fetch full task details from Firestore
+
+        btnApplyTask.setOnClickListener(v -> applyForTask());
 
         Button btnViewApplications = findViewById(R.id.btnViewApplications);
         btnViewApplications.setOnClickListener(v -> {
             Intent intent = new Intent(TaskDetailsActivity.this, TaskApplicationsActivity.class);
-            intent.putExtra("taskId", TaskModel.getTaskId());
+            intent.putExtra("taskId", taskId);  // ✅ Pass correct taskId
             startActivity(intent);
         });
 
         checkIfUserApplied();
-
-        Log.d("TaskDetails", "Task ID received: " + taskId);
     }
+
 
     private void applyForTask() {
         FirebaseAuth auth = FirebaseAuth.getInstance();
@@ -80,9 +77,8 @@ public class TaskDetailsActivity extends AppCompatActivity {
         }
 
         String userId = currentUser.getUid();
-        String taskId = getIntent().getStringExtra("TASK_ID");
 
-        if (taskId == null) {
+        if (taskId == null || taskId.isEmpty()) {
             Toast.makeText(this, "Error: Task not found", Toast.LENGTH_SHORT).show();
             return;
         }
@@ -100,6 +96,7 @@ public class TaskDetailsActivity extends AppCompatActivity {
                 })
                 .addOnFailureListener(e -> Log.e("FirebaseError", "Error: " + e.getMessage()));
     }
+
 
 
     private void saveApplicationToFirebase(String userId, String taskId) {
@@ -151,6 +148,27 @@ public class TaskDetailsActivity extends AppCompatActivity {
                     }
                 });
     }
+
+    private void fetchTaskDetails(String taskId) {
+        db.collection("tasks").document(taskId).get()
+                .addOnSuccessListener(documentSnapshot -> {
+                    if (documentSnapshot.exists()) {
+                        TaskModel task = documentSnapshot.toObject(TaskModel.class);
+
+                        if (task != null) {
+                            title.setText(task.getTitle());
+                            description.setText(task.getDescription());
+                        }
+                    } else {
+                        Log.e("Firebase", "Task not found in Firestore");
+                        Toast.makeText(this, "Task not found!", Toast.LENGTH_SHORT).show();
+                        finish();
+                    }
+                })
+                .addOnFailureListener(e -> Log.e("Firebase", "Error fetching task", e));
+    }
+
+
 
 
 

@@ -41,16 +41,29 @@ public class PostTaskActivity extends AppCompatActivity {
         }
 
         String userId = mAuth.getCurrentUser().getUid();
+        FirebaseFirestore db = FirebaseFirestore.getInstance();
+
+        // 🔹 Create a new task without taskId (yet)
         Map<String, Object> task = new HashMap<>();
         task.put("title", title);
         task.put("description", description);
         task.put("userId", userId);
 
-        db.collection("tasks").add(task)
-                .addOnSuccessListener(documentReference -> {
-                    Toast.makeText(this, "Task Posted!", Toast.LENGTH_SHORT).show();
-                    finish();  // Close the activity
-                })
-                .addOnFailureListener(e -> Toast.makeText(this, "Error!", Toast.LENGTH_SHORT).show());
+        // 🔹 Add task to Firestore
+        db.collection("tasks").add(task).addOnSuccessListener(documentReference -> {
+            String taskId = documentReference.getId();  // 🔥 Get Firestore-generated ID
+
+            // 🔹 Update the same task with its generated taskId
+            documentReference.update("taskId", taskId).addOnSuccessListener(aVoid -> {
+                Toast.makeText(this, "Task Posted!", Toast.LENGTH_SHORT).show();
+                finish();  // Close the activity
+            }).addOnFailureListener(e -> {
+                Toast.makeText(this, "Error updating task ID!", Toast.LENGTH_SHORT).show();
+            });
+
+        }).addOnFailureListener(e -> {
+            Toast.makeText(this, "Error!", Toast.LENGTH_SHORT).show();
+        });
     }
+
 }
