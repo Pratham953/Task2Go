@@ -126,6 +126,13 @@
                 android:backgroundTint="@color/blue"
                 android:textColor="@color/white"
                 android:padding="12dp"/>
+
+            <nl.dionsegijn.konfetti.xml.KonfettiView
+                android:id="@+id/konfettiView"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:layout_below="@id/taskHeader"/>
+
         </LinearLayout>
     </androidx.cardview.widget.CardView>
 </RelativeLayout>

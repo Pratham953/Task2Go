@@ -37,7 +37,7 @@ public class TaskAdapter extends RecyclerView.Adapter<TaskAdapter.TaskViewHolder
         // Click Listener to open TaskDetailsActivity
         holder.itemView.setOnClickListener(v -> {
             Intent intent = new Intent(context, TaskDetailsActivity.class);
-            intent.putExtra("taskId", TaskModel.getTaskId());
+            intent.putExtra("taskId", task.getTaskId());
             context.startActivity(intent);
         });
     }

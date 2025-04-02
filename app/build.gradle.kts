@@ -58,13 +58,13 @@ dependencies {
         implementation (libs.squareup.picasso)
         implementation (libs.androidx.cardview)
         implementation (libs.androidx.cardview)
-
+        implementation (libs.konfetti.xml)
+        implementation (libs.material.v1120)
 
         // Firebase
         implementation (libs.firebase.auth.v2110)
         implementation (libs.firebase.firestore)
         implementation (libs.firebase.storage)
-
         implementation (libs.com.google.firebase.firebase.auth.v2231.x4)
         implementation (libs.firebase.database.v2031)
         implementation (libs.firebase.storage.v2031)
