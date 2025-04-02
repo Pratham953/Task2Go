@@ -1,200 +1,110 @@
 package com.example.task2go;
 
-import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
-import android.widget.EditText;
+import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
+
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
+
 import com.google.firebase.auth.FirebaseAuth;
-import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.firestore.DocumentReference;
-import com.google.firebase.firestore.FieldValue;
 import com.google.firebase.firestore.FirebaseFirestore;
-import java.util.HashMap;
-import java.util.Map;
 
 public class TaskDetailsActivity extends AppCompatActivity {
-    private TextView title, description;
+    private static final String TAG = "TaskDetailsActivity";
+
+    private TextView detailTitle, detailDescription, taskDeadline, taskLocation, taskPrice;
     private Button btnApplyTask;
+
     private FirebaseFirestore db;
-    private FirebaseAuth mAuth;
-    private String taskId;
+    private FirebaseAuth auth;
+    private String taskId, userId;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_task_details);
+        setContentView(R.layout.activity_task_details); // Your provided XML layout
 
-        title = findViewById(R.id.detailTitle);
-        description = findViewById(R.id.detailDescription);
+        // Initialize Firestore and FirebaseAuth
+        db = FirebaseFirestore.getInstance();
+        auth = FirebaseAuth.getInstance();
+        userId = auth.getCurrentUser() != null ? auth.getCurrentUser().getUid() : null;
+
+        // Initialize UI elements
+        detailTitle = findViewById(R.id.detailTitle);
+        detailDescription = findViewById(R.id.detailDescription);
+        taskDeadline = findViewById(R.id.taskDeadline);
+        taskLocation = findViewById(R.id.taskLocation);
+        taskPrice = findViewById(R.id.taskPrice);
         btnApplyTask = findViewById(R.id.btnApplyTask);
 
-        db = FirebaseFirestore.getInstance();
-        mAuth = FirebaseAuth.getInstance();
-
-        // ✅ Correctly retrieve taskId
+        // Get Task ID from Intent
         taskId = getIntent().getStringExtra("taskId");
-
-        if (taskId == null || taskId.isEmpty()) {
-            Log.e("TaskDetailsActivity", "Task ID is missing");
-            Toast.makeText(this, "Task not found!", Toast.LENGTH_SHORT).show();
+        if (taskId == null) {
+            Toast.makeText(this, "Task ID is missing!", Toast.LENGTH_SHORT).show();
             finish();
             return;
         }
 
-        Log.d("TaskDetailsActivity", "Received Task ID: " + taskId);
+        // Load task details
+        loadTaskDetails();
 
-        // ✅ Correctly set task details
-        title.setText(getIntent().getStringExtra("title"));
-        description.setText(getIntent().getStringExtra("description"));
-
-        fetchTaskDetails(taskId);  // Fetch full task details from Firestore
-
-        btnApplyTask.setOnClickListener(v -> applyForTask());
-
-        Button btnViewApplications = findViewById(R.id.btnViewApplications);
-        btnViewApplications.setOnClickListener(v -> {
-            Intent intent = new Intent(TaskDetailsActivity.this, TaskApplicationsActivity.class);
-            intent.putExtra("taskId", taskId);  // ✅ Pass correct taskId
-            startActivity(intent);
-        });
-
-        checkIfUserApplied();
+        // Apply for the task when button is clicked
+        btnApplyTask.setOnClickListener(view -> applyForTask());
     }
 
-
-    private void applyForTask() {
-        FirebaseAuth auth = FirebaseAuth.getInstance();
-        FirebaseUser currentUser = auth.getCurrentUser();
-
-        if (currentUser == null) {
-            Toast.makeText(this, "Please log in to apply", Toast.LENGTH_SHORT).show();
-            return;
-        }
-
-        String userId = currentUser.getUid();
-
-        if (taskId == null || taskId.isEmpty()) {
-            Toast.makeText(this, "Error: Task not found", Toast.LENGTH_SHORT).show();
-            return;
-        }
-
-        FirebaseFirestore db = FirebaseFirestore.getInstance();
-        DocumentReference applicationRef = db.collection("TaskApplications").document(userId + "_" + taskId);
-
-        applicationRef.get()
-                .addOnSuccessListener(documentSnapshot -> {
-                    if (documentSnapshot.exists()) {
-                        Toast.makeText(this, "You have already applied for this task!", Toast.LENGTH_SHORT).show();
-                    } else {
-                        saveApplicationToFirebase(userId, taskId);
-                    }
-                })
-                .addOnFailureListener(e -> Log.e("FirebaseError", "Error: " + e.getMessage()));
-    }
-
-
-
-    private void saveApplicationToFirebase(String userId, String taskId) {
-        FirebaseFirestore db = FirebaseFirestore.getInstance();
-
-        // Reference to "TaskApplications" collection
-        DocumentReference applicationRef = db.collection("TaskApplications").document(userId + "_" + taskId);
-
-        // Create application object
-        Map<String, Object> applicationData = new HashMap<>();
-        applicationData.put("userId", userId);
-        applicationData.put("taskId", taskId);
-        applicationData.put("timestamp", System.currentTimeMillis());
-
-        applicationRef.set(applicationData)
-                .addOnSuccessListener(aVoid -> {
-                    Toast.makeText(this, "You have successfully applied!", Toast.LENGTH_SHORT).show();
-                    updateUIAfterApplying();  // Update button state
-                })
-                .addOnFailureListener(e -> {
-                    Toast.makeText(this, "Failed to apply. Try again!", Toast.LENGTH_SHORT).show();
-                    Log.e("FirebaseError", "Error: " + e.getMessage());
-                });
-    }
-
-    private void updateUIAfterApplying() {
-        Button applyButton = findViewById(R.id.btnApplyTask);
-        applyButton.setText("Applied");
-        applyButton.setEnabled(false); // Disable button
-    }
-
-
-    private void checkIfUserApplied() {
-        FirebaseAuth auth = FirebaseAuth.getInstance();
-        FirebaseUser currentUser = auth.getCurrentUser();
-
-        if (currentUser == null) return;
-
-        String userId = currentUser.getUid();
-        String taskId = getIntent().getStringExtra("TASK_ID");
-
-        FirebaseFirestore db = FirebaseFirestore.getInstance();
-        DocumentReference applicationRef = db.collection("TaskApplications").document(userId + "_" + taskId);
-
-        applicationRef.get()
-                .addOnSuccessListener(documentSnapshot -> {
-                    if (documentSnapshot.exists()) {
-                        updateUIAfterApplying();  // User already applied, update UI
-                    }
-                });
-    }
-
-    private void fetchTaskDetails(String taskId) {
+    private void loadTaskDetails() {
         db.collection("tasks").document(taskId).get()
                 .addOnSuccessListener(documentSnapshot -> {
                     if (documentSnapshot.exists()) {
-                        TaskModel task = documentSnapshot.toObject(TaskModel.class);
+                        String title = documentSnapshot.getString("title");
+                        String description = documentSnapshot.getString("description");
+                        String deadline = documentSnapshot.getString("date");  // Firestore field: date
+                        String location = documentSnapshot.getString("location");
+                        String price = documentSnapshot.getString("budget");  // Firestore field: budget
 
-                        if (task != null) {
-                            title.setText(task.getTitle());
-                            description.setText(task.getDescription());
-                        }
+                        detailTitle.setText(title);
+                        detailDescription.setText(description);
+                        taskDeadline.setText("Deadline: " + deadline);
+                        taskLocation.setText(location);
+                        taskPrice.setText("₹" + price);
                     } else {
-                        Log.e("Firebase", "Task not found in Firestore");
                         Toast.makeText(this, "Task not found!", Toast.LENGTH_SHORT).show();
                         finish();
                     }
                 })
-                .addOnFailureListener(e -> Log.e("Firebase", "Error fetching task", e));
+                .addOnFailureListener(e -> {
+                    Log.e(TAG, "Error fetching task details", e);
+                    Toast.makeText(this, "Failed to load task details", Toast.LENGTH_SHORT).show();
+                });
     }
 
+    private void applyForTask() {
+        if (userId == null) {
+            Toast.makeText(this, "Please log in to apply for tasks.", Toast.LENGTH_SHORT).show();
+            return;
+        }
 
+        DocumentReference taskRef = db.collection("tasks").document(taskId);
 
-
-
-
-
-//    private void applyForTask() {
-//        String userId = FirebaseAuth.getInstance().getCurrentUser().getUid();
-//        String message = "I am interested in this task!"; // Change this to user input later
-//
-//        Map<String, Object> application = new HashMap<>();
-//        application.put("userId", userId);
-//        application.put("message", message);
-//        application.put("timestamp", System.currentTimeMillis());
-//
-//        FirebaseFirestore db = FirebaseFirestore.getInstance();
-//        db.collection("tasks").document(taskId)
-//                .collection("applications")
-//                .add(application)
-//                .addOnSuccessListener(docRef -> {
-//                    Toast.makeText(this, "Application Sent!", Toast.LENGTH_SHORT).show();
-//                    Log.d("Firestore", "Application added successfully!");
-//                })
-//                .addOnFailureListener(e -> {
-//                    Toast.makeText(this, "Error: " + e.getMessage(), Toast.LENGTH_SHORT).show();
-//                    Log.e("Firestore", "Error adding application", e);
-//                });
-//    }
-
+        // Move task to "acceptedTasks" collection under user's profile
+        db.collection("users").document(userId).collection("acceptedTasks").document(taskId)
+                .set(new TaskModel(taskId, detailTitle.getText().toString(), detailDescription.getText().toString(),
+                        taskDeadline.getText().toString(), taskPrice.getText().toString(), taskLocation.getText().toString()))
+                .addOnSuccessListener(aVoid -> {
+                    // Remove task from the dashboard
+                    taskRef.delete()
+                            .addOnSuccessListener(aVoid1 -> {
+                                Toast.makeText(TaskDetailsActivity.this, "Task accepted!", Toast.LENGTH_SHORT).show();
+                                finish();
+                            })
+                            .addOnFailureListener(e -> Log.e(TAG, "Error removing task from dashboard", e));
+                })
+                .addOnFailureListener(e -> Log.e(TAG, "Error applying for task", e));
+    }
 }

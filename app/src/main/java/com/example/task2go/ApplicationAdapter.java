@@ -7,7 +7,10 @@ import android.view.ViewGroup;
 import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.List;
+import java.util.Locale;
 
 public class ApplicationAdapter extends RecyclerView.Adapter<ApplicationAdapter.ViewHolder> {
     private List<ApplicationModel> applicationList;
@@ -28,7 +31,11 @@ public class ApplicationAdapter extends RecyclerView.Adapter<ApplicationAdapter.
     @Override
     public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
         ApplicationModel application = applicationList.get(position);
-        holder.message.setText(application.getMessage());
+        holder.textUserId.setText("User ID: " + application.getUserId());
+
+        // Convert timestamp to readable date
+        String formattedDate = formatTimestamp(application.getTimestamp());
+        holder.textAppliedAt.setText("Applied at: " + formattedDate);
     }
 
     @Override
@@ -37,11 +44,17 @@ public class ApplicationAdapter extends RecyclerView.Adapter<ApplicationAdapter.
     }
 
     public static class ViewHolder extends RecyclerView.ViewHolder {
-        TextView message;
+        TextView textUserId, textAppliedAt;
 
         public ViewHolder(@NonNull View itemView) {
             super(itemView);
-            message = itemView.findViewById(R.id.applicationMessage);
+            textUserId = itemView.findViewById(R.id.textUserId);
+            textAppliedAt = itemView.findViewById(R.id.textAppliedAt);
         }
+    }
+
+    private String formatTimestamp(long timestamp) {
+        SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy HH:mm", Locale.getDefault());
+        return sdf.format(new Date(timestamp));
     }
 }

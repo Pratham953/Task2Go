@@ -2,18 +2,13 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
-    android:padding="16dp">
-
-    <TextView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Task Applications"
-        android:textSize="20sp"
-        android:textStyle="bold"
-        android:paddingBottom="10dp"/>
+    android:fitsSystemWindows="true"
+    android:paddingTop="20dp">
 
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/recyclerViewApplications"
         android:layout_width="match_parent"
-        android:layout_height="match_parent"/>
+        android:layout_height="match_parent"
+        android:padding="10dp"/>
+
 </LinearLayout>

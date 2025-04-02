@@ -2,24 +2,21 @@ package com.example.task2go;
 
 import android.content.Context;
 import android.content.Intent;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
-
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
-
 import java.util.List;
 
 public class TaskAdapter extends RecyclerView.Adapter<TaskAdapter.TaskViewHolder> {
-    private final List<TaskModel> taskList;
-    private final Context context;
+    private Context context;
+    private List<TaskModel> taskList;
 
-    public TaskAdapter(List<TaskModel> taskList, Context context) {
-        this.taskList = taskList;
+    public TaskAdapter(Context context, List<TaskModel> taskList) {
         this.context = context;
+        this.taskList = taskList;
     }
 
     @NonNull
@@ -32,21 +29,17 @@ public class TaskAdapter extends RecyclerView.Adapter<TaskAdapter.TaskViewHolder
     @Override
     public void onBindViewHolder(@NonNull TaskViewHolder holder, int position) {
         TaskModel task = taskList.get(position);
-        holder.taskTitle.setText(task.getTitle());
-        holder.taskDescription.setText(task.getDescription());
-        String taskId = TaskModel.getTaskId();
+        holder.txtTitle.setText(task.getTitle());
+        holder.txtDescription.setText(task.getDescription());
+        holder.txtDeadline.setText("Deadline: " + task.getDate());
+        holder.txtBudget.setText("Budget: ₹" + task.getBudget());
 
-        // Open Task Details on Click
+        // Click Listener to open TaskDetailsActivity
         holder.itemView.setOnClickListener(v -> {
             Intent intent = new Intent(context, TaskDetailsActivity.class);
-            intent.putExtra("taskId", taskList.get(position).getTaskId());
-            intent.putExtra("title", task.getTitle());
-            intent.putExtra("description", task.getDescription());
+            intent.putExtra("taskId", TaskModel.getTaskId());
             context.startActivity(intent);
         });
-
-        Log.d("TaskAdapter", "Task ID: " + TaskModel.getTaskId());
-
     }
 
     @Override
@@ -55,12 +48,17 @@ public class TaskAdapter extends RecyclerView.Adapter<TaskAdapter.TaskViewHolder
     }
 
     public static class TaskViewHolder extends RecyclerView.ViewHolder {
-        TextView taskTitle, taskDescription;
+        TextView txtTitle, txtDescription, txtDeadline, txtBudget;
 
         public TaskViewHolder(@NonNull View itemView) {
             super(itemView);
-            taskTitle = itemView.findViewById(R.id.taskTitle);
-            taskDescription = itemView.findViewById(R.id.taskDescription);
+            txtTitle = itemView.findViewById(R.id.taskTitle);
+            txtDescription = itemView.findViewById(R.id.taskDescription);
+            txtDeadline = itemView.findViewById(R.id.txtDeadline);
+            txtBudget = itemView.findViewById(R.id.txtBudget);
         }
     }
+
+
 }
+

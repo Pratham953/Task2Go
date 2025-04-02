@@ -10,6 +10,9 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Toast;
+
+import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.QueryDocumentSnapshot;
 import java.util.ArrayList;
@@ -23,37 +26,55 @@ public class TaskListFragment extends Fragment {
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
-        View view = inflater.inflate(R.layout.task_list_fragment, container, false);
+        View view = inflater.inflate(R.layout.fragment_my_tasks, container, false);
 
-        recyclerView = view.findViewById(R.id.recyclerViewTasks);
+        recyclerView = view.findViewById(R.id.recyclerView);
         recyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
 
         taskList = new ArrayList<>();
-        taskAdapter = new TaskAdapter(taskList, getContext());
+        taskAdapter = new TaskAdapter(getContext(), taskList);
         recyclerView.setAdapter(taskAdapter);
 
-        db = FirebaseFirestore.getInstance();
-        loadTasks();
+        loadTasks(); // Call method to load tasks
 
         return view;
     }
 
+
     private void loadTasks() {
-        db.collection("tasks").get().addOnCompleteListener(task -> {
-            if (task.isSuccessful()) {
-                for (QueryDocumentSnapshot doc : task.getResult()) {
-                    TaskModel taskItem = doc.toObject(TaskModel.class);
+        FirebaseFirestore db = FirebaseFirestore.getInstance();
 
-                    // ✅ Assign Firestore document ID as taskId
-                    taskItem.setTaskId(doc.getId());
+        db.collection("tasks") // Fetch all tasks
+                .get()
+                .addOnCompleteListener(task -> {
+                    if (task.isSuccessful()) {
+                        taskList.clear();
+                        for (DocumentSnapshot document : task.getResult()) {
+                            TaskModel taskModel = document.toObject(TaskModel.class);
+                            if (taskModel != null) {
+                                taskModel.setTaskId(document.getId()); // Store Firestore document ID
+                                taskList.add(taskModel);
+                                Log.d("TaskListFragment", "Task Loaded: " + taskModel.getTitle() + " (ID: " + taskModel.getTaskId() + ")");
+                            }
+                        }
 
-                    taskList.add(taskItem);
-                }
-                taskAdapter.notifyDataSetChanged();
-            } else {
-                Log.e("Firestore", "Error loading tasks", task.getException());
-            }
-        });
+                        Log.d("TaskListFragment", "Total Tasks Loaded: " + taskList.size());
+
+                        taskAdapter.notifyDataSetChanged();
+                    } else {
+                        Log.e("TaskListFragment", "Error fetching tasks", task.getException());
+                    }
+                });
     }
 
+
+
+
+
+
+    @Override
+    public void onResume() {
+        super.onResume();
+        loadTasks(); // Refresh the list when returning to this fragment
+    }
 }

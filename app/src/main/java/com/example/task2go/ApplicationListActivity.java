@@ -28,7 +28,7 @@ public class ApplicationListActivity extends AppCompatActivity {
 
         db = FirebaseFirestore.getInstance();
         applicationList = new ArrayList<>();
-        applicationAdapter = new ApplicationAdapter(applicationList, this);
+        applicationAdapter = new ApplicationAdapter(applicationList, getApplicationContext());
         recyclerView.setAdapter(applicationAdapter);
 
         // Get Task ID from Intent

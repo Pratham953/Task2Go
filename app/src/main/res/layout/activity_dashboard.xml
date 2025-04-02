@@ -6,13 +6,14 @@
     android:fitsSystemWindows="true">  <!-- THIS LINE FIXES THE OVERLAP -->
 
     <!-- Fragment Container (Takes remaining space) -->
+
+    <!-- Floating Action Button (FAB) Positioned Above Bottom Nav -->
     <FrameLayout
         android:id="@+id/fragmentContainer"
         android:layout_width="match_parent"
-        android:layout_height="0dp"
-        android:layout_weight="1"/>
+        android:layout_height="650dp"
+        android:layout_weight="1" />
 
-    <!-- Floating Action Button (FAB) Positioned Above Bottom Nav -->
     <com.google.android.material.floatingactionbutton.FloatingActionButton
         android:id="@+id/fabCreateTask"
         android:layout_width="wrap_content"
@@ -28,5 +29,7 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         app:menu="@menu/bottom_nav_menu"/>
+
+
 
 </LinearLayout>

@@ -1,14 +1,20 @@
 [versions]
 agp = "8.8.0"
 appcompatVersion = "1.7.0"
+cardviewVersion = "1.0.0"
 comGoogleAndroidMaterialMaterial10 = "1.9.0"
+comGoogleFirebaseFirebaseAuth5 = "22.3.1"
 constraintlayoutVersion = "2.2.0"
 converterGson = "2.9.0"
+firebaseAnalytics = "22.4.0"
 firebaseAppcheckPlayintegrity = "18.0.0"
 firebaseAuthVersion = "21.1.0"
 firebaseBom = "33.9.0"
+firebaseDatabaseVersion = "20.3.1"
 firebaseFirestore = "25.1.2"
+firebaseFirestoreVersion = "24.9.1"
 firebaseStorage = "21.0.1"
+firebaseStorageVersion = "20.3.1"
 firebaseUiAuth = "7.2.0"
 glide = "4.16.0"
 googleFirebaseAuth = "22.3.0"
@@ -25,19 +31,29 @@ googleGmsGoogleServices = "4.4.2"
 firebaseAuth = "23.2.0"
 navigationFragment = "2.8.7"
 navigationUi = "2.8.7"
+playServicesAuth = "21.3.0"
 recyclerview = "1.4.0"
+recyclerviewVersion = "1.2.1"
+firebaseDatabase = "21.0.0"
+squareupPicasso = "2.71828"
 
 [libraries]
+androidx-cardview = { module = "androidx.cardview:cardview", version.ref = "cardviewVersion" }
 appcompat-v170 = { module = "androidx.appcompat:appcompat", version.ref = "appcompatVersion" }
 com-google-android-material-material-v190-x10 = { module = "com.google.android.material:material", version.ref = "comGoogleAndroidMaterialMaterial10" }
+com-google-firebase-firebase-auth-v2231-x4 = { module = "com.google.firebase:firebase-auth", version.ref = "comGoogleFirebaseFirebaseAuth5" }
 constraintlayout-v220 = { module = "androidx.constraintlayout:constraintlayout", version.ref = "constraintlayoutVersion" }
 converter-gson = { module = "com.squareup.retrofit2:converter-gson", version.ref = "converterGson" }
+firebase-analytics = { module = "com.google.firebase:firebase-analytics", version.ref = "firebaseAnalytics" }
 firebase-appcheck-playintegrity = { module = "com.google.firebase:firebase-appcheck-playintegrity", version.ref = "firebaseAppcheckPlayintegrity" }
 firebase-auth-v2110 = { module = "com.google.firebase:firebase-auth", version.ref = "firebaseAuthVersion" }
 firebase-auth-v2230 = { module = "com.google.firebase:firebase-auth", version.ref = "googleFirebaseAuth" }
 firebase-bom = { module = "com.google.firebase:firebase-bom", version.ref = "firebaseBom" }
+firebase-database-v2031 = { module = "com.google.firebase:firebase-database", version.ref = "firebaseDatabaseVersion" }
 firebase-firestore = { module = "com.google.firebase:firebase-firestore", version.ref = "firebaseFirestore" }
+firebase-firestore-v2491 = { module = "com.google.firebase:firebase-firestore", version.ref = "firebaseFirestoreVersion" }
 firebase-storage = { module = "com.google.firebase:firebase-storage", version.ref = "firebaseStorage" }
+firebase-storage-v2031 = { module = "com.google.firebase:firebase-storage", version.ref = "firebaseStorageVersion" }
 firebase-ui-auth = { module = "com.firebaseui:firebase-ui-auth", version.ref = "firebaseUiAuth" }
 glide = { module = "com.github.bumptech.glide:glide", version.ref = "glide" }
 google-firebase-auth = { module = "com.google.firebase:firebase-auth" }
@@ -53,8 +69,12 @@ constraintlayout = { group = "androidx.constraintlayout", name = "constraintlayo
 firebase-auth = { group = "com.google.firebase", name = "firebase-auth", version.ref = "firebaseAuth" }
 navigation-fragment = { module = "androidx.navigation:navigation-fragment", version.ref = "navigationFragment" }
 navigation-ui = { module = "androidx.navigation:navigation-ui", version.ref = "navigationUi" }
+play-services-auth = { module = "com.google.android.gms:play-services-auth", version.ref = "playServicesAuth" }
 recyclerview = { module = "androidx.recyclerview:recyclerview", version.ref = "recyclerview" }
+recyclerview-v121 = { module = "androidx.recyclerview:recyclerview", version.ref = "recyclerviewVersion" }
 retrofit = { module = "com.squareup.retrofit2:retrofit", version.ref = "converterGson" }
+firebase-database = { group = "com.google.firebase", name = "firebase-database", version.ref = "firebaseDatabase" }
+squareup-picasso = { module = "com.squareup.picasso:picasso", version.ref = "squareupPicasso" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }

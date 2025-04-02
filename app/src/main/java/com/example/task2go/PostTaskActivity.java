@@ -1,69 +1,128 @@
 package com.example.task2go;
 
+import android.app.DatePickerDialog;
+import android.app.ProgressDialog;
 import android.os.Bundle;
+import android.text.TextUtils;
 import android.view.View;
-import android.widget.Button;
-import android.widget.EditText;
+import android.widget.DatePicker;
 import android.widget.Toast;
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
-import com.google.firebase.auth.FirebaseAuth;
+import com.google.android.material.button.MaterialButton;
+import com.google.android.material.textfield.TextInputEditText;
 import com.google.firebase.firestore.FirebaseFirestore;
+import java.util.Calendar;
 import java.util.HashMap;
 import java.util.Map;
 
 public class PostTaskActivity extends AppCompatActivity {
-    private EditText taskTitle, taskDescription;
-    private Button btnPostTask;
+
+    private TextInputEditText edtTaskTitle, edtTaskDescription, edtTaskBudget, edtTaskDate, edtTaskLocation;
+    private MaterialButton btnPostTask;
     private FirebaseFirestore db;
-    private FirebaseAuth mAuth;
+    private ProgressDialog progressDialog;
+    private Calendar calendar;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_post_task);
 
-        taskTitle = findViewById(R.id.taskTitle);
-        taskDescription = findViewById(R.id.taskDescription);
-        btnPostTask = findViewById(R.id.btnPostTask);
+        // Initialize Firebase Firestore
         db = FirebaseFirestore.getInstance();
-        mAuth = FirebaseAuth.getInstance();
 
-        btnPostTask.setOnClickListener(v -> postTask());
+        // Initialize UI Elements
+        edtTaskTitle = findViewById(R.id.etTaskTitle);
+        edtTaskDescription = findViewById(R.id.etTaskDescription);
+        edtTaskBudget = findViewById(R.id.etBudget);
+        edtTaskDate = findViewById(R.id.etDueDate);
+        edtTaskLocation = findViewById(R.id.etLocation);
+        btnPostTask = findViewById(R.id.btnCreateTask);
+        calendar = Calendar.getInstance();
+
+        // Initialize Progress Dialog
+        progressDialog = new ProgressDialog(this);
+        progressDialog.setMessage("Posting Task...");
+        progressDialog.setCancelable(false);
+
+        // Open Date Picker when Date field is clicked
+        edtTaskDate.setOnClickListener(v -> showDatePicker());
+
+        // Button Click Listener
+        btnPostTask.setOnClickListener(v -> postTaskToFirestore());
     }
 
-    private void postTask() {
-        String title = taskTitle.getText().toString();
-        String description = taskDescription.getText().toString();
+    // Method to Show Date Picker
+    private void showDatePicker() {
+        int year = calendar.get(Calendar.YEAR);
+        int month = calendar.get(Calendar.MONTH);
+        int day = calendar.get(Calendar.DAY_OF_MONTH);
 
-        if (title.isEmpty() || description.isEmpty()) {
-            Toast.makeText(this, "Please fill all fields!", Toast.LENGTH_SHORT).show();
+        DatePickerDialog datePickerDialog = new DatePickerDialog(
+                this,
+                (view, selectedYear, selectedMonth, selectedDay) -> {
+                    // Format the date as DD/MM/YYYY
+                    String selectedDate = selectedDay + "/" + (selectedMonth + 1) + "/" + selectedYear;
+                    edtTaskDate.setText(selectedDate);
+                },
+                year, month, day
+        );
+        datePickerDialog.show();
+    }
+
+    private void postTaskToFirestore() {
+        String title = edtTaskTitle.getText().toString().trim();
+        String description = edtTaskDescription.getText().toString().trim();
+        String budget = edtTaskBudget.getText().toString().trim();
+        String date = edtTaskDate.getText().toString().trim();
+        String location = edtTaskLocation.getText().toString().trim();
+
+        // Validate Input Fields
+        if (TextUtils.isEmpty(title)) {
+            edtTaskTitle.setError("Title is required");
+            return;
+        }
+        if (TextUtils.isEmpty(description)) {
+            edtTaskDescription.setError("Description is required");
+            return;
+        }
+        if (TextUtils.isEmpty(budget)) {
+            edtTaskBudget.setError("Budget is required");
+            return;
+        }
+        if (TextUtils.isEmpty(date)) {
+            edtTaskDate.setError("Date is required");
+            return;
+        }
+        if (TextUtils.isEmpty(location)) {
+            edtTaskLocation.setError("Location is required");
             return;
         }
 
-        String userId = mAuth.getCurrentUser().getUid();
-        FirebaseFirestore db = FirebaseFirestore.getInstance();
+        // Show Progress Dialog
+        progressDialog.show();
 
-        // 🔹 Create a new task without taskId (yet)
+        // Task Data Map
         Map<String, Object> task = new HashMap<>();
         task.put("title", title);
         task.put("description", description);
-        task.put("userId", userId);
+        task.put("budget", budget);
+        task.put("date", date);
+        task.put("location", location);
+        task.put("timestamp", System.currentTimeMillis());
 
-        // 🔹 Add task to Firestore
-        db.collection("tasks").add(task).addOnSuccessListener(documentReference -> {
-            String taskId = documentReference.getId();  // 🔥 Get Firestore-generated ID
-
-            // 🔹 Update the same task with its generated taskId
-            documentReference.update("taskId", taskId).addOnSuccessListener(aVoid -> {
-                Toast.makeText(this, "Task Posted!", Toast.LENGTH_SHORT).show();
-                finish();  // Close the activity
-            }).addOnFailureListener(e -> {
-                Toast.makeText(this, "Error updating task ID!", Toast.LENGTH_SHORT).show();
-            });
-
-        }).addOnFailureListener(e -> {
-            Toast.makeText(this, "Error!", Toast.LENGTH_SHORT).show();
-        });
+        // Store in Firestore
+        db.collection("tasks")
+                .add(task)
+                .addOnSuccessListener(documentReference -> {
+                    progressDialog.dismiss();
+                    Toast.makeText(PostTaskActivity.this, "Task Posted Successfully!", Toast.LENGTH_SHORT).show();
+                    finish(); // Close activity
+                })
+                .addOnFailureListener(e -> {
+                    progressDialog.dismiss();
+                    Toast.makeText(PostTaskActivity.this, "Failed to post task: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                });
     }
-
 }

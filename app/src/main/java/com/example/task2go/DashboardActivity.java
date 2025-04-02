@@ -32,7 +32,9 @@ public class DashboardActivity extends AppCompatActivity {
             if (item.getItemId() == R.id.nav_tasks) {
                 selectedFragment = new TaskListFragment();
             } else if (item.getItemId() == R.id.nav_profile) {
-                selectedFragment = new Fragment();
+                selectedFragment = new ProfileFragment();
+            } else if (item.getItemId() == R.id.nav_my_tasks) { // New Tab
+                selectedFragment = new MyTasksFragment();
             }
             if (selectedFragment != null) {
                 loadFragment(selectedFragment);
@@ -51,4 +53,15 @@ public class DashboardActivity extends AppCompatActivity {
         transaction.replace(R.id.fragmentContainer, fragment);
         transaction.commit();
     }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        if (getIntent().getBooleanExtra("refreshProfile", false)) {
+            getSupportFragmentManager().beginTransaction()
+                    .replace(R.id.fragmentContainer, new ProfileFragment())
+                    .commit();
+        }
+    }
+
 }

@@ -41,7 +41,7 @@ public class Registration extends AppCompatActivity {
         remail=findViewById(R.id.email);
         rpass=findViewById(R.id.password);
         btnrg=findViewById(R.id.btnrg);
-        progressBar=findViewById(R.id.pg);
+        //progressBar=findViewById(R.id.pg);
         textView=findViewById(R.id.loginnow);
 
         mAuth = FirebaseAuth.getInstance();
@@ -59,7 +59,7 @@ public class Registration extends AppCompatActivity {
         btnrg.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                progressBar.setVisibility(View.VISIBLE);
+               // progressBar.setVisibility(View.VISIBLE);
                 String emaill,password;
                 emaill=String.valueOf(remail.getText());
                 password=String.valueOf(rpass.getText());
@@ -82,7 +82,7 @@ public class Registration extends AppCompatActivity {
                         .addOnCompleteListener(new OnCompleteListener<AuthResult>() {
                             @Override
                             public void onComplete(@NonNull Task<AuthResult> task) {
-                                progressBar.setVisibility(View.GONE);
+                                //progressBar.setVisibility(View.GONE);
                                 if (task.isSuccessful()) {
                                     // Sign in success, update UI with the signed-in user's information
                                     //Log.d(TAG, "createUserWithEmail:success")
